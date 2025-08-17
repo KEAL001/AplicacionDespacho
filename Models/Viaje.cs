@@ -1,14 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace AplicacionDespacho.Models
 {
-    // Models/Viaje.cs
-    
-
     public class Viaje
     {
         public int ViajeId { get; set; }
@@ -20,5 +13,17 @@ namespace AplicacionDespacho.Models
         public string PuntoLlegada { get; set; }
         public int VehiculoId { get; set; }
         public int ConductorId { get; set; }
+
+        // Nuevos campos agregados  
+        public string Estado { get; set; } = "Activo";
+        public DateTime FechaCreacion { get; set; } = DateTime.Now;
+        public DateTime? FechaModificacion { get; set; }
+        public string UsuarioCreacion { get; set; }
+        public string UsuarioModificacion { get; set; }
+
+        // Propiedades de navegación para mostrar información relacionada  
+        public string NombreEmpresa { get; set; }
+        public string NombreConductor { get; set; }
+        public string PlacaVehiculo { get; set; }
     }
 }

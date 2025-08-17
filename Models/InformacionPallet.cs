@@ -14,6 +14,18 @@ namespace AplicacionDespacho.Models
         public string Calibre { get; set; }
         public string Embalaje { get; set; }
         public int NumeroDeCajas { get; set; }
-        public int ViajeId { get; set; }
+
+        // Nuevos campos para peso  
+        public decimal PesoUnitario { get; set; }
+        public decimal PesoTotal { get; set; }
+
+        // Campos para rastrear modificaciones  
+        public string VariedadOriginal { get; set; }
+        public string CalibreOriginal { get; set; }
+        public string EmbalajeOriginal { get; set; }
+        public int NumeroDeCajasOriginal { get; set; }
+        public bool Modificado { get; set; } = false;
+        public DateTime FechaEscaneo { get; set; } = DateTime.Now;
+        public DateTime? FechaModificacion { get; set; }
     }
 }

@@ -1,6 +1,4 @@
-﻿// Views/MainWindow.xaml.cs
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using AplicacionDespacho.Models;
@@ -11,102 +9,118 @@ namespace AplicacionDespacho
 {
     public partial class MainWindow : Window
     {
-        private AccesoDatosViajes _accesoDatosViajes;
-        private List<EmpresaTransporte> _listaEmpresas;
-        private List<Vehiculo> _listaVehiculos;
-        private List<Conductor> _listaConductores;
-
         public MainWindow()
         {
             InitializeComponent();
 
             var accesoDatosPallet = new AccesoDatosPallet();
             this.DataContext = new ViewModelPrincipal(accesoDatosPallet);
-            _accesoDatosViajes = new AccesoDatosViajes();
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            CargarDatosIniciales();
-        }
-
-        private void CargarDatosIniciales()
-        {
-            _listaEmpresas = _accesoDatosViajes.ObtenerEmpresas();
-            comboBoxEmpresa.ItemsSource = _listaEmpresas;
-            comboBoxEmpresa.DisplayMemberPath = "NombreEmpresa";
-            comboBoxEmpresa.SelectedValuePath = "EmpresaId";
-
-            if (_listaEmpresas.Count > 0)
-            {
-                comboBoxEmpresa.SelectedIndex = 0;
-            }
-        }
-
-        private void ComboBoxEmpresa_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (comboBoxEmpresa.SelectedItem is EmpresaTransporte empresaSeleccionada)
-            {
-                _listaVehiculos = _accesoDatosViajes.ObtenerVehiculosPorEmpresa(empresaSeleccionada.EmpresaId);
-                comboBoxPlaca.ItemsSource = _listaVehiculos;
-                comboBoxPlaca.DisplayMemberPath = "Placa";
-                comboBoxPlaca.SelectedValuePath = "VehiculoId";
-
-                _listaConductores = _accesoDatosViajes.ObtenerConductoresPorEmpresa(empresaSeleccionada.EmpresaId);
-                comboBoxConductor.ItemsSource = _listaConductores;
-                comboBoxConductor.DisplayMemberPath = "NombreConductor";
-                comboBoxConductor.SelectedValuePath = "ConductorId";
-            }
-            else
-            {
-                comboBoxPlaca.ItemsSource = null;
-                comboBoxConductor.ItemsSource = null;
-            }
-        }
-
-        private void btnGuardarViaje_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (comboBoxEmpresa.SelectedValue == null || comboBoxPlaca.SelectedValue == null || comboBoxConductor.SelectedValue == null ||
-                    string.IsNullOrWhiteSpace(textBoxNumeroViaje.Text) || string.IsNullOrWhiteSpace(textBoxResponsable.Text) ||
-                    string.IsNullOrWhiteSpace(textBoxNumeroGuia.Text) || datePickerFecha.SelectedDate == null)
-                {
-                    MessageBox.Show("Por favor, complete todos los campos y seleccione una empresa, vehículo y conductor.", "Error de Datos", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                var nuevoViaje = new Viaje
-                {
-                    Fecha = datePickerFecha.SelectedDate.GetValueOrDefault(),
-                    NumeroViaje = int.Parse(textBoxNumeroViaje.Text),
-                    Responsable = textBoxResponsable.Text,
-                    NumeroGuia = textBoxNumeroGuia.Text,
-                    PuntoPartida = textBoxPuntoPartida.Text,
-                    PuntoLlegada = textBoxPuntoLlegada.Text,
-                    VehiculoId = (int)comboBoxPlaca.SelectedValue,
-                    ConductorId = (int)comboBoxConductor.SelectedValue
-                };
-
-                _accesoDatosViajes.GuardarViaje(nuevoViaje);
-                MessageBox.Show("¡Viaje registrado exitosamente!", "Registro Exitoso", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            catch (FormatException)
-            {
-                MessageBox.Show("El campo 'N° Viaje' debe ser un número válido.", "Error de Formato", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Ocurrió un error al guardar el viaje: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            // Ya no necesitamos cargar datos iniciales aquí      
+            // porque se manejan en las ventanas modales      
         }
 
         private void btnAbrirAdmin_Click(object sender, RoutedEventArgs e)
         {
             var adminWindow = new AdminWindow();
             adminWindow.ShowDialog();
+        }
 
-            CargarDatosIniciales();
+        private void btnConsultasReportes_Click(object sender, RoutedEventArgs e)
+        {
+            var ventanaConsultas = new ConsultasReportesWindow();
+            ventanaConsultas.ShowDialog();
+        }
+
+        private void btnGestionPesos_Click(object sender, RoutedEventArgs e)
+        {
+            var ventanaPesos = new PesosPorEmbalajeWindow();
+            ventanaPesos.ShowDialog();
+        }
+
+        // Métodos para gestión de edición de pallets - IMPLEMENTADOS CORRECTAMENTE  
+        private void btnAplicarCambios_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = this.DataContext as ViewModelPrincipal;
+            if (viewModel?.UltimoPalletEscaneado != null)
+            {
+                // Obtener los valores actuales de los campos de edición  
+                var palletEditado = viewModel.UltimoPalletEscaneado;
+
+                // Verificar si hay un pallet seleccionado para actualizar  
+                if (viewModel.PalletSeleccionado != null)
+                {
+                    // Verificar si hubo cambios comparando con valores originales  
+                    bool huboModificacion =
+                        palletEditado.Variedad != palletEditado.VariedadOriginal ||
+                        palletEditado.Calibre != palletEditado.CalibreOriginal ||
+                        palletEditado.Embalaje != palletEditado.EmbalajeOriginal ||
+                        palletEditado.NumeroDeCajas != palletEditado.NumeroDeCajasOriginal;
+
+                    // Actualizar el pallet en la colección  
+                    var index = viewModel.PalletsEscaneados.IndexOf(viewModel.PalletSeleccionado);
+                    if (index >= 0)
+                    {
+                        palletEditado.Modificado = huboModificacion;
+                        palletEditado.FechaModificacion = huboModificacion ? DateTime.Now : viewModel.PalletSeleccionado.FechaModificacion;
+
+                        // Recalcular peso si cambió el embalaje o número de cajas  
+                        if (huboModificacion && (palletEditado.Embalaje != palletEditado.EmbalajeOriginal ||
+                            palletEditado.NumeroDeCajas != palletEditado.NumeroDeCajasOriginal))
+                        {
+                            var accesoDatosViajes = new AccesoDatosViajes();
+                            var pesoEmbalaje = accesoDatosViajes.ObtenerPesoEmbalaje(palletEditado.Embalaje);
+                            if (pesoEmbalaje != null)
+                            {
+                                palletEditado.PesoUnitario = pesoEmbalaje.PesoUnitario;
+                                palletEditado.PesoTotal = palletEditado.NumeroDeCajas * pesoEmbalaje.PesoUnitario;
+                            }
+                        }
+
+                        viewModel.PalletsEscaneados[index] = palletEditado;
+                        viewModel.PalletSeleccionado = palletEditado;
+
+                        // Actualizar totales en el ViewModel  
+                        viewModel.ActualizarTotales();
+
+                        MessageBox.Show(huboModificacion ? "Cambios aplicados. Pallet marcado como modificado." : "Cambios aplicados.",
+                                       "Edición", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("No hay pallet seleccionado para aplicar cambios.", "Advertencia",
+                                   MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+        }
+
+        private void btnRevertir_Click(object sender, RoutedEventArgs e)
+        {
+            var viewModel = this.DataContext as ViewModelPrincipal;
+            if (viewModel?.ComandoRevertirCambios.CanExecute(null) == true)
+            {
+                viewModel.ComandoRevertirCambios.Execute(null);
+            }
+            else
+            {
+                MessageBox.Show("No hay pallet seleccionado para revertir.", "Advertencia",
+                               MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        // Método para manejo de selección de pallets  
+        private void dgPallets_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // El binding automático ya maneja la selección  
+            var viewModel = this.DataContext as ViewModelPrincipal;
+            if (viewModel?.PalletSeleccionado != null)
+            {
+                System.Diagnostics.Debug.WriteLine($"Pallet seleccionado: {viewModel.PalletSeleccionado.NumeroPallet}");
+            }
         }
     }
 }
