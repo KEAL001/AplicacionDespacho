@@ -6,7 +6,8 @@ using System.Data;
 using System.Data.SqlClient;
 using System;
 using AplicacionDespacho.Configuration;
-
+using System.Collections.Generic;
+using AplicacionDespacho.Models.Reports;
 
 namespace AplicacionDespacho.Services.DataAccess
 {
