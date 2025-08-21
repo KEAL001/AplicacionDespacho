@@ -93,7 +93,7 @@ namespace AplicacionDespacho
                 txtPesoEmbalajeId.Text = pesoSeleccionado.PesoEmbalajeId.ToString();
                 txtNombreEmbalaje.Text = pesoSeleccionado.NombreEmbalaje;
                 txtPesoUnitario.Text = pesoSeleccionado.PesoUnitario.ToString("F3", CultureInfo.InvariantCulture);
-
+                txtTotalCajasFichaTecnica.Text = pesoSeleccionado.TotalCajasFichaTecnica?.ToString() ?? "";
                 // Cambiar comportamiento del botón según contexto  
                 if (pesoSeleccionado.PesoEmbalajeId == 0)
                 {
@@ -136,6 +136,7 @@ namespace AplicacionDespacho
                             {
                                 NombreEmbalaje = txtNombreEmbalaje.Text.Trim(),
                                 PesoUnitario = nuevoPeso,
+                                TotalCajasFichaTecnica = int.TryParse(txtTotalCajasFichaTecnica.Text, out int totalCajas) ? totalCajas : (int?)null,
                                 FechaCreacion = DateTime.Now,
                                 Activo = true
                             };
@@ -215,6 +216,7 @@ namespace AplicacionDespacho
                         PesoEmbalajeId = int.Parse(txtPesoEmbalajeId.Text),
                         NombreEmbalaje = txtNombreEmbalaje.Text.Trim(),
                         PesoUnitario = decimal.Parse(txtPesoUnitario.Text, CultureInfo.InvariantCulture),
+                        TotalCajasFichaTecnica = int.TryParse(txtTotalCajasFichaTecnica.Text, out int totalCajas) ? totalCajas : (int?)null,
                         FechaModificacion = DateTime.Now,
                         Activo = true
                     };
@@ -285,7 +287,7 @@ namespace AplicacionDespacho
             txtPesoEmbalajeId.Text = string.Empty;
             txtNombreEmbalaje.Text = string.Empty;
             txtPesoUnitario.Text = string.Empty;
-
+            txtTotalCajasFichaTecnica.Text = string.Empty;
             btnGuardar.IsEnabled = true;
             btnActualizar.IsEnabled = true;
             btnActualizar.Content = "Actualizar desde Base";

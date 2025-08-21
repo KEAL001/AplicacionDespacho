@@ -1,8 +1,12 @@
 ﻿// Services/DataAccess/AccesoDatosViajes.cs  
+using AplicacionDespacho.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
-using AplicacionDespacho.Models;
+using System;
+using AplicacionDespacho.Configuration;
+
 
 namespace AplicacionDespacho.Services.DataAccess
 {
@@ -12,7 +16,12 @@ namespace AplicacionDespacho.Services.DataAccess
 
         public AccesoDatosViajes()
         {
-            _cadenaConexion = "Data Source=DESKTOP-18ERN8F\\SQLEXPRESS;Initial Catalog=Despachos_SJP;Integrated Security=True;";
+            _cadenaConexion = AppConfig.DespachosSJPConnectionString;
+        }
+
+        public AccesoDatosViajes(string connectionString)
+        {
+            _cadenaConexion = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
         }
 
         public void GuardarViaje(Viaje nuevoViaje)
@@ -293,9 +302,10 @@ namespace AplicacionDespacho.Services.DataAccess
         public PesoEmbalaje ObtenerPesoEmbalaje(string nombreEmbalaje)
         {
             PesoEmbalaje pesoEmbalaje = null;
-            string consulta = @"  
-        SELECT PesoEmbalajeId, NombreEmbalaje, PesoUnitario, FechaCreacion, FechaModificacion, Activo  
-        FROM PESOS_EMBALAJE   
+            string consulta = @"    
+        SELECT PesoEmbalajeId, NombreEmbalaje, PesoUnitario, TotalCajasFichaTecnica,  
+               FechaCreacion, FechaModificacion, Activo    
+        FROM PESOS_EMBALAJE     
         WHERE NombreEmbalaje = @NombreEmbalaje AND Activo = 1";
 
             using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
@@ -316,6 +326,7 @@ namespace AplicacionDespacho.Services.DataAccess
                                 PesoEmbalajeId = (int)lector["PesoEmbalajeId"],
                                 NombreEmbalaje = lector["NombreEmbalaje"].ToString(),
                                 PesoUnitario = (decimal)lector["PesoUnitario"],
+                                TotalCajasFichaTecnica = lector["TotalCajasFichaTecnica"] as int?,
                                 FechaCreacion = (DateTime)lector["FechaCreacion"],
                                 FechaModificacion = lector["FechaModificacion"] as DateTime?,
                                 Activo = (bool)lector["Activo"]
@@ -329,9 +340,10 @@ namespace AplicacionDespacho.Services.DataAccess
                     }
                 }
             }
-
             return pesoEmbalaje;
         }
+
+
         public List<Viaje> BuscarViajesConFiltros(string numeroGuia, int? empresaId, int? conductorId, DateTime? fechaDesde, DateTime? fechaHasta, string numeroPallet)
         {
             var viajes = new List<Viaje>();
@@ -498,10 +510,10 @@ namespace AplicacionDespacho.Services.DataAccess
         public List<PesoEmbalaje> ObtenerTodosPesosEmbalaje()
         {
             var pesos = new List<PesoEmbalaje>();
-            string consulta = @"  
-        SELECT PesoEmbalajeId, NombreEmbalaje, PesoUnitario, FechaCreacion,   
-               FechaModificacion, Activo  
-        FROM PESOS_EMBALAJE   
+            string consulta = @"    
+        SELECT PesoEmbalajeId, NombreEmbalaje, PesoUnitario, TotalCajasFichaTecnica,  
+               FechaCreacion, FechaModificacion, Activo    
+        FROM PESOS_EMBALAJE     
         ORDER BY NombreEmbalaje";
 
             using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
@@ -519,6 +531,7 @@ namespace AplicacionDespacho.Services.DataAccess
                                 PesoEmbalajeId = (int)lector["PesoEmbalajeId"],
                                 NombreEmbalaje = lector["NombreEmbalaje"].ToString(),
                                 PesoUnitario = (decimal)lector["PesoUnitario"],
+                                TotalCajasFichaTecnica = lector["TotalCajasFichaTecnica"] as int?,
                                 FechaCreacion = (DateTime)lector["FechaCreacion"],
                                 FechaModificacion = lector["FechaModificacion"] as DateTime?,
                                 Activo = (bool)lector["Activo"]
@@ -532,7 +545,6 @@ namespace AplicacionDespacho.Services.DataAccess
                     }
                 }
             }
-
             return pesos;
         }
 
@@ -569,12 +581,13 @@ namespace AplicacionDespacho.Services.DataAccess
 
         public void ActualizarPesoEmbalaje(PesoEmbalaje peso)
         {
-            string consulta = @"  
-        UPDATE PESOS_EMBALAJE SET   
-            NombreEmbalaje = @NombreEmbalaje,  
-            PesoUnitario = @PesoUnitario,  
-            FechaModificacion = @FechaModificacion,  
-            Activo = @Activo  
+            string consulta = @"    
+        UPDATE PESOS_EMBALAJE SET     
+            NombreEmbalaje = @NombreEmbalaje,    
+            PesoUnitario = @PesoUnitario,    
+            TotalCajasFichaTecnica = @TotalCajasFichaTecnica,  
+            FechaModificacion = @FechaModificacion,    
+            Activo = @Activo    
         WHERE PesoEmbalajeId = @PesoEmbalajeId";
 
             using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
@@ -584,6 +597,8 @@ namespace AplicacionDespacho.Services.DataAccess
                     comando.Parameters.AddWithValue("@PesoEmbalajeId", peso.PesoEmbalajeId);
                     comando.Parameters.AddWithValue("@NombreEmbalaje", peso.NombreEmbalaje);
                     comando.Parameters.AddWithValue("@PesoUnitario", peso.PesoUnitario);
+                    comando.Parameters.AddWithValue("@TotalCajasFichaTecnica",
+                        peso.TotalCajasFichaTecnica.HasValue ? (object)peso.TotalCajasFichaTecnica.Value : DBNull.Value);
                     comando.Parameters.AddWithValue("@FechaModificacion", DateTime.Now);
                     comando.Parameters.AddWithValue("@Activo", peso.Activo);
 
@@ -813,6 +828,132 @@ namespace AplicacionDespacho.Services.DataAccess
             }
 
             return embalajes;
+        }
+
+        public List<Viaje> ObtenerViajesActivos()
+        {
+            var viajes = new List<Viaje>();
+            string consulta = @"  
+        SELECT v.ViajeId, v.Fecha, v.NumeroViaje, v.Responsable, v.NumeroGuia,   
+               v.PuntoPartida, v.PuntoLlegada, v.VehiculoId, v.ConductorId, v.Estado,  
+               e.NombreEmpresa, c.NombreConductor, vh.Placa  
+        FROM VIAJES v  
+        INNER JOIN VEHICULOS vh ON v.VehiculoId = vh.VehiculoId  
+        INNER JOIN EMPRESAS_TRANSPORTE e ON vh.EmpresaId = e.EmpresaId  
+        INNER JOIN CONDUCTORES c ON v.ConductorId = c.ConductorId  
+        WHERE v.Estado = 'Activo'  
+        ORDER BY v.Fecha DESC, v.NumeroViaje DESC";
+
+            using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
+            {
+                using (SqlCommand comando = new SqlCommand(consulta, conexion))
+                {
+                    try
+                    {
+                        conexion.Open();
+                        SqlDataReader lector = comando.ExecuteReader();
+                        while (lector.Read())
+                        {
+                            viajes.Add(new Viaje
+                            {
+                                ViajeId = lector.GetInt32("ViajeId"),
+                                Fecha = lector.GetDateTime("Fecha"),
+                                NumeroViaje = lector.GetInt32("NumeroViaje"),
+                                Responsable = lector.GetString("Responsable"),
+                                NumeroGuia = lector.GetString("NumeroGuia"),
+                                PuntoPartida = lector.GetString("PuntoPartida"),
+                                PuntoLlegada = lector.GetString("PuntoLlegada"),
+                                VehiculoId = lector.GetInt32("VehiculoId"),
+                                ConductorId = lector.GetInt32("ConductorId"),
+                                Estado = lector.GetString("Estado"),
+                                NombreEmpresa = lector.GetString("NombreEmpresa"),
+                                NombreConductor = lector.GetString("NombreConductor"),
+                                PlacaVehiculo = lector.GetString("Placa")
+                            });
+                        }
+                        lector.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error al obtener viajes activos: {ex.Message}");
+                    }
+                }
+            }
+            return viajes;
+        }
+
+        public void ActualizarPalletViaje(InformacionPallet pallet, int viajeId)
+        {
+            string consulta = @"    
+        UPDATE PALLETS_VIAJE SET     
+            Variedad = @Variedad,    
+            Calibre = @Calibre,    
+            Embalaje = @Embalaje,    
+            NumeroDeCajas = @NumeroDeCajas,    
+            PesoUnitario = @PesoUnitario,    
+            PesoTotal = @PesoTotal,    
+            Modificado = @Modificado,    
+            FechaModificacion = @FechaModificacion    
+        WHERE NumeroPallet = @NumeroPallet AND ViajeId = @ViajeId";
+
+            using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
+            {
+                using (SqlCommand comando = new SqlCommand(consulta, conexion))
+                {
+                    comando.Parameters.AddWithValue("@NumeroPallet", pallet.NumeroPallet);
+                    comando.Parameters.AddWithValue("@Variedad", pallet.Variedad ?? "");
+                    comando.Parameters.AddWithValue("@Calibre", pallet.Calibre ?? "");
+                    comando.Parameters.AddWithValue("@Embalaje", pallet.Embalaje ?? "");
+                    comando.Parameters.AddWithValue("@NumeroDeCajas", pallet.NumeroDeCajas);
+                    comando.Parameters.AddWithValue("@PesoUnitario", pallet.PesoUnitario);
+                    comando.Parameters.AddWithValue("@PesoTotal", pallet.PesoTotal);
+                    comando.Parameters.AddWithValue("@Modificado", pallet.Modificado);
+                    comando.Parameters.AddWithValue("@FechaModificacion", pallet.FechaModificacion ?? DateTime.Now);
+                    comando.Parameters.AddWithValue("@ViajeId", viajeId);
+
+                    try
+                    {
+                        conexion.Open();
+                        comando.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error al actualizar pallet en viaje: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public void EliminarPalletViaje(string numeroPallet, int viajeId)
+        {
+            string consulta = @"    
+        DELETE FROM PALLETS_VIAJE     
+        WHERE NumeroPallet = @NumeroPallet AND ViajeId = @ViajeId";
+
+            using (SqlConnection conexion = new SqlConnection(_cadenaConexion))
+            {
+                using (SqlCommand comando = new SqlCommand(consulta, conexion))
+                {
+                    comando.Parameters.AddWithValue("@NumeroPallet", numeroPallet);
+                    comando.Parameters.AddWithValue("@ViajeId", viajeId);
+
+                    try
+                    {
+                        conexion.Open();
+                        int filasAfectadas = comando.ExecuteNonQuery();
+                        if (filasAfectadas == 0)
+                        {
+                            throw new Exception("No se encontró el pallet para eliminar.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error al eliminar pallet del viaje: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
         }
     }
 }

@@ -38,10 +38,12 @@
                               Foreground="{Binding TieneViajeActivo, Converter={StaticResource BoolToColorConverter}}"      
                               Margin="5"/>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
-                        <Button Content="Nuevo Viaje" Command="{Binding ComandoNuevoViaje}"       
-                                Width="100" Height="25" Margin="0,0,10,0"/>
-                        <Button Content="Ver/Editar Viaje" Command="{Binding ComandoEditarViaje}"       
-                                Width="120" Height="25" Margin="0,0,10,0"/>
+                        <Button Content="Nuevo Viaje" Command="{Binding ComandoNuevoViaje}"         
+                            Width="100" Height="25" Margin="0,0,10,0"/>
+                        <Button Content="Continuar Viaje" Command="{Binding ComandoContinuarViaje}"         
+                            Width="120" Height="25" Margin="0,0,10,0"/>
+                        <Button Content="Ver/Editar Viaje" Command="{Binding ComandoEditarViaje}"         
+                            Width="120" Height="25" Margin="0,0,10,0"/>
                     </StackPanel>
                 </StackPanel>
             </GroupBox>
@@ -109,8 +111,9 @@
 
                     <!-- Botones de acción -->
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Vertical" Margin="10">
-                        <Button Content="Aplicar Cambios" x:Name="btnAplicarCambios"       
-                                Width="120" Height="25" Margin="0,0,0,5" Click="btnAplicarCambios_Click"/>
+                        <Button Content="Aplicar Cambios" x:Name="btnAplicarCambios"           
+                                 Width="120" Height="25" Margin="0,0,0,5"     
+                                 Command="{Binding DataContext.ComandoAplicarCambios, RelativeSource={RelativeSource AncestorType=Window}}"/>
                         <Button Content="Revertir" x:Name="btnRevertir"       
                                 Width="120" Height="25" Click="btnRevertir_Click"/>
                     </StackPanel>

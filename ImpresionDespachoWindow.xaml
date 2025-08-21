@@ -65,18 +65,18 @@
         <!-- Detalle de pallets -->
         <GroupBox Grid.Row="2" Header="Detalle de Pallets" Margin="0,0,0,20">
             <DataGrid x:Name="dgPallets"   
-                      AutoGenerateColumns="False"   
+                      AutoGenerateColumns="FALSE"   
                       IsReadOnly="True"  
                       GridLinesVisibility="All"  
                       HeadersVisibility="Column"  
-                      FontSize="10">
+                      FontSize="13">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Pallet" Binding="{Binding NumeroPallet}" Width="80"/>
+                    <DataGridTextColumn Header="Pallet" Binding="{Binding NumeroPallet}" Width="100"/>
                     <DataGridTextColumn Header="Variedad" Binding="{Binding Variedad}" Width="100"/>
                     <DataGridTextColumn Header="Calibre" Binding="{Binding Calibre}" Width="80"/>
                     <DataGridTextColumn Header="Embalaje" Binding="{Binding Embalaje}" Width="100"/>
                     <DataGridTextColumn Header="N° Cajas" Binding="{Binding NumeroDeCajas}" Width="70"/>
-                    <DataGridTextColumn Header="Peso Unit. (kg)" Binding="{Binding PesoUnitario, StringFormat=F3}" Width="90"/>
+                    <DataGridTextColumn Header="Peso Unit. (kg)" Binding="{Binding PesoUnitario, StringFormat=F3}" Width="100"/>
                     <DataGridTextColumn Header="Peso Total (kg)" Binding="{Binding PesoTotal, StringFormat=F3}" Width="100"/>
                 </DataGrid.Columns>
             </DataGrid>

@@ -1,10 +1,13 @@
 ﻿// RegistroViajeWindow.xaml.cs    
+using AplicacionDespacho.Configuration;
+using AplicacionDespacho.Models;
+using AplicacionDespacho.Services.DataAccess;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
-using AplicacionDespacho.Models;
-using AplicacionDespacho.Services.DataAccess;
+using AplicacionDespacho.Configuration;
+
 
 namespace AplicacionDespacho
 {
@@ -25,22 +28,20 @@ namespace AplicacionDespacho
             InitializeComponent();
             _accesoDatosViajes = new AccesoDatosViajes();
 
-            // Valores por defecto (editables)    
+            // Usar configuración centralizada para valores por defecto  
             datePickerFecha.SelectedDate = DateTime.Now;
-            textBoxPuntoPartida.Text = "PIURA";
-            textBoxPuntoLlegada.Text = "SULLANA";
+            textBoxPuntoPartida.Text = AppConfig.DefaultDeparturePoint;
+            textBoxPuntoLlegada.Text = AppConfig.DefaultArrivalPoint;
+            textBoxResponsable.Text = AppConfig.DefaultResponsible;
 
-            // CAMBIO: Solo establecer prefijo, no autogenerar  
             InicializarNumeroGuia();
         }
 
         // CAMBIO: Método modificado para solo establecer prefijo  
         private void InicializarNumeroGuia()
         {
-            textBoxNumeroGuia.Text = "T004-";
-            textBoxNumeroGuia.IsReadOnly = false; // Permitir edición  
-
-            // Agregar evento para mantener el prefijo  
+            textBoxNumeroGuia.Text = AppConfig.DefaultGuidePrefix;
+            textBoxNumeroGuia.IsReadOnly = false;
             textBoxNumeroGuia.TextChanged += TextBoxNumeroGuia_TextChanged;
         }
 
@@ -48,13 +49,15 @@ namespace AplicacionDespacho
         private void TextBoxNumeroGuia_TextChanged(object sender, TextChangedEventArgs e)
         {
             var textBox = sender as TextBox;
-            if (textBox != null && !textBox.Text.StartsWith("T004-"))
+            var prefix = AppConfig.DefaultGuidePrefix;
+
+            if (textBox != null && !textBox.Text.StartsWith(prefix))
             {
                 int cursorPosition = textBox.SelectionStart;
-                textBox.TextChanged -= TextBoxNumeroGuia_TextChanged; // Evitar recursión  
-                textBox.Text = "T004-" + textBox.Text.Replace("T004-", "");
-                textBox.SelectionStart = Math.Max(5, cursorPosition);
-                textBox.TextChanged += TextBoxNumeroGuia_TextChanged; // Restaurar evento  
+                textBox.TextChanged -= TextBoxNumeroGuia_TextChanged;
+                textBox.Text = prefix + textBox.Text.Replace(prefix, "");
+                textBox.SelectionStart = Math.Max(prefix.Length, cursorPosition);
+                textBox.TextChanged += TextBoxNumeroGuia_TextChanged;
             }
         }
 
@@ -63,7 +66,7 @@ namespace AplicacionDespacho
             // Validaciones básicas    
             if (datePickerFecha.SelectedDate == null ||
                 string.IsNullOrWhiteSpace(textBoxNumeroViaje.Text) ||
-                string.IsNullOrWhiteSpace(textBoxResponsable.Text) ||
+                string.IsNullOrWhiteSpace(textBoxResponsable.Text.ToUpper()) ||
                 string.IsNullOrWhiteSpace(textBoxNumeroGuia.Text) ||
                 comboBoxEmpresa.SelectedValue == null ||
                 comboBoxPlaca.SelectedValue == null ||
@@ -211,10 +214,10 @@ namespace AplicacionDespacho
                     {
                         Fecha = datePickerFecha.SelectedDate.GetValueOrDefault(),
                         NumeroViaje = int.Parse(textBoxNumeroViaje.Text),
-                        Responsable = textBoxResponsable.Text,
+                        Responsable = textBoxResponsable.Text.ToUpper(),
                         NumeroGuia = textBoxNumeroGuia.Text,
-                        PuntoPartida = textBoxPuntoPartida.Text,
-                        PuntoLlegada = textBoxPuntoLlegada.Text,
+                        PuntoPartida = textBoxPuntoPartida.Text.ToUpper(),
+                        PuntoLlegada = textBoxPuntoLlegada.Text.ToUpper(),
                         VehiculoId = (int)comboBoxPlaca.SelectedValue,
                         ConductorId = (int)comboBoxConductor.SelectedValue,
                         Estado = "Activo",
@@ -230,10 +233,10 @@ namespace AplicacionDespacho
                 {
                     ViajeCreado.Fecha = datePickerFecha.SelectedDate.GetValueOrDefault();
                     ViajeCreado.NumeroViaje = int.Parse(textBoxNumeroViaje.Text);
-                    ViajeCreado.Responsable = textBoxResponsable.Text;
+                    ViajeCreado.Responsable = textBoxResponsable.Text.ToUpper();
                     ViajeCreado.NumeroGuia = textBoxNumeroGuia.Text;
-                    ViajeCreado.PuntoPartida = textBoxPuntoPartida.Text;
-                    ViajeCreado.PuntoLlegada = textBoxPuntoLlegada.Text;
+                    ViajeCreado.PuntoPartida = textBoxPuntoPartida.Text.ToUpper();
+                    ViajeCreado.PuntoLlegada = textBoxPuntoLlegada.Text.ToUpper();
                     ViajeCreado.VehiculoId = (int)comboBoxPlaca.SelectedValue;
                     ViajeCreado.ConductorId = (int)comboBoxConductor.SelectedValue;
                     ViajeCreado.FechaModificacion = DateTime.Now;

@@ -37,7 +37,7 @@ namespace AplicacionDespacho
             {
                 var nuevaEmpresa = new EmpresaTransporte
                 {
-                    NombreEmpresa = textBoxEmpresa.Text,
+                    NombreEmpresa = textBoxEmpresa.Text.ToUpper(),
                     RUC = textBoxRUC.Text
                 };
                 _accesoDatosViajes.GuardarEmpresa(nuevaEmpresa);
@@ -59,7 +59,7 @@ namespace AplicacionDespacho
             {
                 var nuevoConductor = new Conductor
                 {
-                    NombreConductor = textBoxConductor.Text,
+                    NombreConductor = textBoxConductor.Text.ToUpper(),
                     EmpresaId = (int)comboBoxEmpresasConductor.SelectedValue
                 };
                 _accesoDatosViajes.GuardarConductor(nuevoConductor);
@@ -79,7 +79,7 @@ namespace AplicacionDespacho
             {
                 var nuevoVehiculo = new Vehiculo
                 {
-                    Placa = textBoxPlaca.Text,
+                    Placa = textBoxPlaca.Text.ToUpper(),
                     EmpresaId = (int)comboBoxEmpresasVehiculo.SelectedValue
                 };
                 _accesoDatosViajes.GuardarVehiculo(nuevoVehiculo);
